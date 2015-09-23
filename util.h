@@ -1,6 +1,7 @@
 #ifndef IMAGEUTIL_H
 #define IMAGEUTIL_H
 
+#include <cstdarg>
 #include <opencv2/opencv.hpp>
 #include <armadillo>
 
@@ -42,5 +43,47 @@ inline std::string string_format(const std::string fmt, ...)
   }
   return str;
 }
+
+inline arma::mat integral_image(const arma::mat &a)
+{
+  using namespace arma;
+  mat a_ii = zeros(a.n_rows+1, a.n_cols+1);
+  for (size_t j = 0; j < a.n_rows; ++j)
+  {
+    double sum = 0.0;
+    for (size_t i = 0; i < a.n_cols; ++i)
+    {
+      sum += a(j,i);
+      a_ii(j+1,i+1) = sum + a_ii(j,i+1);
+    }
+  }
+  return a_ii;
+}
+
+inline void integral_image(const arma::mat &a, arma::mat &a_ii)
+{
+  using namespace arma;
+  for (size_t j = 0; j < a.n_rows; ++j)
+  {
+    double sum = 0.0;
+    for (size_t i = 0; i < a.n_cols; ++i)
+    {
+      sum += a(j,i);
+      a_ii(j+1,i+1) = sum + a_ii(j,i+1);
+    }
+  }
+}
+
+inline double integral_accu(const arma::mat &ii, size_t ymin, size_t xmin, size_t ymax, size_t xmax)
+{
+  return ii(ymax+1,xmax+1) - ii(ymin,xmax+1) - ii(ymax+1,xmin) + ii(ymin,xmin);
+}
+
+inline double integral_accu(const arma::mat &ii)
+{
+  return ii(ii.n_rows-1, ii.n_cols-1);
+}
+
+
 
 #endif
